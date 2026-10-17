@@ -1,0 +1,20 @@
+# Kaggle competition data: download it from Kaggle (see README)
+train.csv
+test.csv
+data_description.txt
+sample_submission.csv
+
+# Earlier drafts, superseded by house_price_analysis.ipynb
+house_price_base.ipynb
+house_price_model_comparison.ipynb
+
+# Python and Jupyter
+.ipynb_checkpoints/
+__pycache__/
+.venv/
+venv/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
