@@ -6,9 +6,15 @@ Predicting the sale prices of houses in Ames, Iowa, from 79 descriptive features
 |---|---|---|
 | 5-fold CV RMSLE | 0.1311 | **0.1054** |
 | Holdout RMSLE (20%, used once) | 0.1451 | **0.1273** |
-| Kaggle public leaderboard | | **0.1224**, top 16% of leak-free submissions (681 / 4,209) |
+| Kaggle public leaderboard | | **0.1224**, top 16% of leak-free submissions (681 / 4,209)\* |
+
+\* The leaderboard's top 59 scores (rank 56: 0.032) are far below what any model reaches on this data and come from leaked test prices, so they are excluded. Including them, the rank is 740 of 4,268. The best score that looks leak-free is 0.1067.
 
 **Final model:** an equal-weight blend (in log space) of Ridge regression and Gradient Boosting, trained on log prices, with unusual sales (foreclosures, family sales) at half weight.
+
+![Predicted vs. actual price, percentage error, and error distribution for the final model](images/predicted_vs_actual.png)
+
+*Final model on houses it never saw during fitting: out-of-fold predictions on the training part (blue) and the 20% holdout (orange). The median error is about 5%; the largest misses are over-predicted cheap houses, mostly unusual sales.*
 
 ## Read the analysis
 
@@ -24,6 +30,24 @@ Predicting the sale prices of houses in Ames, Iowa, from 79 descriptive features
 - **Error analysis.** About a third of the squared error comes from the 9% of houses sold under unusual conditions. Giving those sales half weight in training improved CV RMSLE in all five folds.
 - **Bias vs. regression to the mean.** Grouping by predicted rather than actual price shows that most of the apparent under-prediction of expensive houses is a selection effect (−6.0% vs. −2.2%). A post-hoc calibration was tested and not adopted.
 
+![Cross-validated RMSLE of every candidate model](images/cv_comparison.png)
+
+*Cross-validated RMSLE of every candidate, before the sample-weighting step (which lowers the selected blend from 0.1068 to 0.1054). Blends of a linear and a boosting model lead; their differences are a tenth of the fold standard deviation, so the simplest one is selected.*
+
+## What didn't work
+
+Ideas that were tested and not adopted, and why:
+
+| Idea | Result | Decision |
+|---|---|---|
+| Two-stage model: classify the price tier, then regress within the tier | CV 0.1313 (soft) and 0.1453 (hard), against 0.1311 for the plain Random Forest. The classifier recognised only 56% of low-price and 65% of high-price houses | Dropped: misrouted houses are predicted by a model that never saw houses like them |
+| XGBoost instead of scikit-learn's Gradient Boosting | CV 0.1132 against 0.1116 | Not used: no gain on about 1,000 houses |
+| Adding the Random Forest to a blend | CV 0.1094 against 0.1068 without it | Dropped: learned blend weights give it 0–3% anyway |
+| Calibrating the top quality grades upwards | CV 0.1068 → 0.1065, better in only 3 of 5 folds | Not adopted: inconsistent gain, based on fewer than 50 houses |
+| Ignoring unusual sales entirely (weight 0) | CV 0.1073, worse than full weight (0.1068) | Half weight used instead (0.1054): noisy prices still carry information |
+| Engineered features (total area, house age, total bathrooms, quality × area) | CV change of at most 0.0007 for the selected blend | Not added: below the noise between folds |
+| Replacing Ridge with a tuned SVR, plus the engineered features *(tested separately, not in the notebook)* | CV 0.1054 → 0.1031, holdout 0.1273 → 0.1265, Kaggle 0.1224 → 0.1220 | Not adopted: a more complex model for a leaderboard gain of 0.0004, within the leaderboard's noise |
+
 ## Project structure
 
 | Path | Content |
@@ -31,6 +55,7 @@ Predicting the sale prices of houses in Ames, Iowa, from 79 descriptive features
 | `house_price_analysis.ipynb` | Full analysis: cleaning, features, model comparison, error analysis, final model |
 | `house_price_analysis.pdf` | Report version of the notebook (no code) |
 | `submission.csv` | Predictions for the Kaggle test set |
+| `images/` | Figures used in this README, taken from the notebook |
 | `requirements.txt` | Python packages and versions used |
 
 ## How to run
