@@ -8,6 +8,17 @@ sample_submission.csv
 house_price_base.ipynb
 house_price_model_comparison.ipynb
 
+# Secrets: API keys and passwords must never be committed
+.env
+.env.*
+!.env.example
+*.key
+kaggle.json
+
+# Local model artifacts (large, and can be regenerated)
+*.joblib
+*.pkl
+
 # Python and Jupyter
 .ipynb_checkpoints/
 __pycache__/
