@@ -1,0 +1,20 @@
+# Final model selected in notebooks/house_price_analysis.ipynb (sections 8-14).
+# Every value here comes from that notebook; change it there first, then here.
+
+# Training weight of unusual sales (SaleCondition Abnorml, Family, Alloca, AdjLand); section 13
+unusual_sale_weight = 0.5
+
+# Blend members. "weight" is relative: the blend averages log-price predictions
+# with these weights, so 1 and 1 means an equal-weight blend; section 9.
+
+[[members]]
+name = "Ridge"
+type = "Ridge"
+weight = 1.0
+params = { alpha = 17.78279410038923 }  # 10 ** 1.25, best of the grid in section 8
+
+[[members]]
+name = "Gradient Boosting"
+type = "GradientBoostingRegressor"
+weight = 1.0
+params = { n_estimators = 2000, max_depth = 3, learning_rate = 0.03, subsample = 0.8, max_features = "sqrt", min_samples_leaf = 5 }

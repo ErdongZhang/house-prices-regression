@@ -1,0 +1,47 @@
+{
+  "config": {
+    "unusual_sale_weight": 0.5,
+    "members": [
+      {
+        "name": "Ridge",
+        "type": "Ridge",
+        "weight": 1.0,
+        "params": {
+          "alpha": 17.78279410038923
+        }
+      },
+      {
+        "name": "Gradient Boosting",
+        "type": "GradientBoostingRegressor",
+        "weight": 1.0,
+        "params": {
+          "n_estimators": 2000,
+          "max_depth": 3,
+          "learning_rate": 0.03,
+          "subsample": 0.8,
+          "max_features": "sqrt",
+          "min_samples_leaf": 5
+        }
+      }
+    ]
+  },
+  "training_rows": 1458,
+  "python": "3.14.4",
+  "packages": {
+    "numpy": "2.5.3",
+    "pandas": "3.0.6",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.18.1"
+  },
+  "cv_rmsle": {
+    "mean": 0.1089,
+    "std": 0.0085,
+    "folds": [
+      0.1123,
+      0.1063,
+      0.1158,
+      0.1166,
+      0.0936
+    ]
+  }
+}
