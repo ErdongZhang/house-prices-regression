@@ -1,5 +1,7 @@
 # House Price Prediction (Kaggle: House Prices – Advanced Regression Techniques)
 
+[![tests](https://github.com/ErdongZhang/house-prices-regression/actions/workflows/tests.yml/badge.svg)](https://github.com/ErdongZhang/house-prices-regression/actions/workflows/tests.yml)
+
 Predicting the sale prices of houses in Ames, Iowa, from 79 descriptive features: an end-to-end regression project, from raw CSV files to a Kaggle submission.
 
 | Measure | Random Forest baseline | Final model |
@@ -12,14 +14,70 @@ Predicting the sale prices of houses in Ames, Iowa, from 79 descriptive features
 
 **Final model:** an equal-weight blend (in log space) of Ridge regression and Gradient Boosting, trained on log prices, with unusual sales (foreclosures, family sales) at half weight.
 
-![Predicted vs. actual price, percentage error, and error distribution for the final model](images/predicted_vs_actual.png)
+![Predicted vs. actual price, percentage error, and error distribution for the final model](reports/figures/predicted_vs_actual.png)
 
 *Final model on houses it never saw during fitting: out-of-fold predictions on the training part (blue) and the 20% holdout (orange). The median error is about 5%; the largest misses are over-predicted cheap houses, mostly unusual sales.*
 
+## Quick start: reproduce the submission
+
+Requires Python 3.11 or newer (results were produced with 3.14).
+
+```bash
+# 1. Install the exact package versions used, and this project's package
+pip install -r requirements.txt
+pip install -e .
+
+# 2. Download the data into data/raw/ (see data/README.md)
+
+# 3. Train the final model and write the submission
+python -m house_prices.train          # ~20 s; saves models/final_model.joblib
+python -m house_prices.predict        # writes submissions/submission.csv
+```
+
+`python -m house_prices.train --cv` also reports a 5-fold CV score before training. Both scripts take `--help`.
+
+`requirements.txt` pins the exact versions behind the reported results. To install only what training and prediction need, with any recent versions, use `pip install -e .`; add `pip install -e ".[notebook]"` for the notebook and `".[dev]"` for the tests.
+
+The model is defined in [`configs/final_model.toml`](configs/final_model.toml): blend members, hyperparameters, blend weights, and the weight of unusual sales. Every value there was chosen in the notebook, and the notebook's last code cell checks that the config still matches its selection.
+
+## How the project is organised
+
+```
+├── configs/
+│   └── final_model.toml          # the final model's settings, chosen in the notebook
+├── data/
+│   ├── README.md                 # how to download the data
+│   └── raw/                      # Kaggle CSV files (not in git)
+├── models/
+│   ├── final_model.joblib        # trained model (not in git; rebuilt by train)
+│   └── final_model.json          # config, package versions, and CV score of that model
+├── notebooks/
+│   └── house_price_analysis.ipynb   # the full analysis: why every choice was made
+├── reports/
+│   ├── house_price_analysis.pdf  # the notebook as a 24-page report without code
+│   └── figures/                  # figures used in this README
+├── src/house_prices/             # code shared by the notebook and the scripts
+│   ├── data.py                   # reading and rule-based cleaning
+│   ├── features.py               # feature encoding, imputers, preprocessing pipeline
+│   ├── models.py                 # blend model and building it from the config
+│   ├── metrics.py                # RMSLE, the competition metric
+│   ├── settings.py               # project folders and the random seed
+│   ├── train.py                  # command line: train and save the final model
+│   └── predict.py                # command line: write the Kaggle submission
+├── submissions/
+│   └── submission.csv            # predictions submitted to Kaggle
+├── tests/                        # pytest checks of cleaning rules and the submission format
+├── .github/workflows/tests.yml   # runs the tests on every push
+├── pyproject.toml                # makes src/house_prices installable
+└── requirements.txt              # exact package versions used
+```
+
+**Notebook vs. package.** The notebook tells the story: it compares seven candidate models, analyses errors, and justifies each decision. Code the final model depends on lives in `src/house_prices` and is imported by the notebook, so the analysis and the training script cannot drift apart. Code that only serves the analysis (model comparison, plots, error tables) stays in the notebook.
+
 ## Read the analysis
 
-- [`house_price_analysis.ipynb`](house_price_analysis.ipynb): the full notebook with code
-- [`house_price_analysis.pdf`](house_price_analysis.pdf): the same analysis as a 24-page report without code
+- [`notebooks/house_price_analysis.ipynb`](notebooks/house_price_analysis.ipynb): the full analysis with code. To re-run it (about 6 minutes), install as in the quick start and run `jupyter lab notebooks/house_price_analysis.ipynb`.
+- [`reports/house_price_analysis.pdf`](reports/house_price_analysis.pdf): the same analysis as a report without code.
 
 ## Highlights
 
@@ -30,7 +88,7 @@ Predicting the sale prices of houses in Ames, Iowa, from 79 descriptive features
 - **Error analysis.** About a third of the squared error comes from the 9% of houses sold under unusual conditions. Giving those sales half weight in training improved CV RMSLE in all five folds.
 - **Bias vs. regression to the mean.** Grouping by predicted rather than actual price shows that most of the apparent under-prediction of expensive houses is a selection effect (−6.0% vs. −2.2%). A post-hoc calibration was tested and not adopted.
 
-![Cross-validated RMSLE of every candidate model](images/cv_comparison.png)
+![Cross-validated RMSLE of every candidate model](reports/figures/cv_comparison.png)
 
 *Cross-validated RMSLE of every candidate, before the sample-weighting step (which lowers the selected blend from 0.1068 to 0.1054). Blends of a linear and a boosting model lead; their differences are a tenth of the fold standard deviation, so the simplest one is selected.*
 
@@ -48,29 +106,12 @@ Ideas that were tested and not adopted, and why:
 | Engineered features (total area, house age, total bathrooms, quality × area) | CV change of at most 0.0007 for the selected blend | Not added: below the noise between folds |
 | Replacing Ridge with a tuned SVR, plus the engineered features *(tested separately, not in the notebook)* | CV 0.1054 → 0.1031, holdout 0.1273 → 0.1265, Kaggle 0.1224 → 0.1220 | Not adopted: a more complex model for a leaderboard gain of 0.0004, within the leaderboard's noise |
 
-## Project structure
+## Reproducibility notes
 
-| Path | Content |
-|---|---|
-| `house_price_analysis.ipynb` | Full analysis: cleaning, features, model comparison, error analysis, final model |
-| `house_price_analysis.pdf` | Report version of the notebook (no code) |
-| `submission.csv` | Predictions for the Kaggle test set |
-| `images/` | Figures used in this README, taken from the notebook |
-| `requirements.txt` | Python packages and versions used |
-
-## How to run
-
-1. Download `train.csv` and `test.csv` from the [competition page](https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/data) (a free Kaggle account is required) and put them in this folder.
-2. Install the packages (tested with Python 3.14):
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Open the notebook and run all cells (about 6 minutes on a laptop):
-   ```bash
-   jupyter lab house_price_analysis.ipynb
-   ```
-   The last cell writes `submission.csv`.
+- **Same predictions.** `python -m house_prices.train` followed by `predict` reproduces the notebook's `submission.csv` to within floating-point rounding (largest difference below $0.000001). Random seeds are fixed (`random_state=42`).
+- **Why `train --cv` prints 0.1089, not 0.1054.** The notebook's 0.1054 is measured on the 80% training part with the notebook's folds, the setting in which all models were compared. The script cross-validates on all 1,458 labelled houses with different folds, so its number differs; it is a sanity check, not the reported result.
+- **Tests.** `pytest` checks the cleaning rules and that a small version of the model writes a valid submission (about 10 seconds). Tests that need the Kaggle data are skipped when `data/raw/` is empty, as on GitHub Actions.
 
 ## Data
 
-The data comes from the Kaggle competition and is not included in this repository. It is based on the Ames Housing dataset compiled by Dean De Cock (*Journal of Statistics Education* 19(3), 2011).
+The data comes from the Kaggle competition and is not included in this repository; see [`data/README.md`](data/README.md). It is based on the Ames Housing dataset compiled by Dean De Cock (*Journal of Statistics Education* 19(3), 2011).
