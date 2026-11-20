@@ -19,9 +19,10 @@ def make_submission(model, test_raw):
     test_clean = clean_house_data(test_raw)
     submission = pd.DataFrame({"Id": test_clean["Id"], "SalePrice": model.predict(make_features(test_clean))})
 
-    assert list(submission.columns) == ["Id", "SalePrice"]
-    assert submission["Id"].equals(test_raw["Id"]) and submission["Id"].is_unique
-    assert submission["SalePrice"].notna().all() and (submission["SalePrice"] > 0).all()
+    if not (submission["Id"].equals(test_raw["Id"]) and submission["Id"].is_unique):
+        raise ValueError("submission Ids must match test.csv, in the same order")
+    if not (submission["SalePrice"].notna().all() and (submission["SalePrice"] > 0).all()):
+        raise ValueError("every predicted SalePrice must be a positive number")
     return submission
 
 
