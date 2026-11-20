@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "house-prices"
+version = "1.0.0"
+description = "Predicting Ames, Iowa house prices (Kaggle House Prices competition)"
+requires-python = ">=3.11"
+license = "MIT"
+# Needed to train the model and predict (python -m house_prices.train / predict)
+dependencies = [
+    "numpy>=2.0",
+    "pandas>=2.2",
+    "scipy>=1.11",
+    "scikit-learn>=1.6",
+]
+
+[project.optional-dependencies]
+# Extra packages for re-running the analysis notebook
+notebook = ["xgboost", "matplotlib", "jupyterlab", "ipykernel"]
+dev = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
