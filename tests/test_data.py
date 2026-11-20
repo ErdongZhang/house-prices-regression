@@ -4,10 +4,7 @@ import io
 
 import pandas as pd
 
-from conftest import needs_data
-
 from house_prices.data import clean_house_data, is_outlier, load_house_data
-from house_prices.settings import RAW_DATA_DIR
 
 
 def test_load_keeps_none_as_a_category():
@@ -17,9 +14,8 @@ def test_load_keeps_none_as_a_category():
     assert column.iloc[1:].isna().all()
 
 
-@needs_data
-def test_cleaning_rules_on_real_rows():
-    train = load_house_data(RAW_DATA_DIR / "train.csv")
+def test_cleaning_rules_on_real_rows(raw_data_dir):
+    train = load_house_data(raw_data_dir / "train.csv")
     clean = clean_house_data(train)
 
     no_garage = train["GarageArea"].eq(0)
