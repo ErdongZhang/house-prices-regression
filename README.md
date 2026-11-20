@@ -20,7 +20,7 @@ Predicting the sale prices of houses in Ames, Iowa, from 79 descriptive features
 
 ## Quick start: reproduce the submission
 
-Requires Python 3.11 or newer (results were produced with 3.14).
+Requires Python 3.12 or newer (results were produced with 3.14).
 
 ```bash
 # 1. Install the exact package versions used, and this project's package
