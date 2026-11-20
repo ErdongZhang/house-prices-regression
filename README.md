@@ -30,11 +30,11 @@ pip install -e .
 # 2. Download the data into data/raw/ (see data/README.md)
 
 # 3. Train the final model and write the submission
-python -m house_prices.train          # ~20 s; saves models/final_model.joblib
+python -m house_prices.train          # ~20 s; 5-fold CV, then saves models/final_model.joblib
 python -m house_prices.predict        # writes submissions/submission.csv
 ```
 
-`python -m house_prices.train --cv` also reports a 5-fold CV score before training. Both scripts take `--help`.
+`python -m house_prices.train --no-cv` skips the cross-validation. Both scripts take `--help`.
 
 `requirements.txt` pins the exact versions behind the reported results. To install only what training and prediction need, with any recent versions, use `pip install -e .`; add `pip install -e ".[notebook]"` for the notebook and `".[dev]"` for the tests.
 
@@ -109,7 +109,7 @@ Ideas that were tested and not adopted, and why:
 ## Reproducibility notes
 
 - **Same predictions.** `python -m house_prices.train` followed by `predict` reproduces the notebook's `submission.csv` to within floating-point rounding (largest difference below $0.000001). Random seeds are fixed (`random_state=42`).
-- **Why `train --cv` prints 0.1089, not 0.1054.** The notebook's 0.1054 is measured on the 80% training part with the notebook's folds, the setting in which all models were compared. The script cross-validates on all 1,458 labelled houses with different folds, so its number differs; it is a sanity check, not the reported result.
+- **Why `train` prints a CV RMSLE of 0.1089, not 0.1054.** The notebook's 0.1054 is measured on the 80% training part with the notebook's folds, the setting in which all models were compared. The script cross-validates on all 1,458 labelled houses with different folds, so its number differs; it is a sanity check, not the reported result.
 - **Tests.** `pytest` checks the cleaning rules and that a small version of the model writes a valid submission (about 10 seconds). Tests that need the Kaggle data are skipped when `data/raw/` is empty, as on GitHub Actions.
 
 ## Data

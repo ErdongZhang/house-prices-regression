@@ -1,14 +1,14 @@
 """Train the final model on all labelled houses and save it.
 
-    python -m house_prices.train                 # train and save models/final_model.joblib
-    python -m house_prices.train --cv           # also report 5-fold CV RMSLE first
+    python -m house_prices.train                 # 5-fold CV, then train and save models/final_model.joblib
+    python -m house_prices.train --no-cv        # skip the cross-validation
 """
 
 import argparse
 import json
 import platform
-from pathlib import Path
 from importlib.metadata import version
+from pathlib import Path
 
 import joblib
 import numpy as np
@@ -36,7 +36,7 @@ def main():
     parser.add_argument("--config", default=CONFIG_DIR / "final_model.toml", help="model config (TOML)")
     parser.add_argument("--train", default=RAW_DATA_DIR / "train.csv", help="Kaggle train.csv")
     parser.add_argument("--output", default=MODELS_DIR / "final_model.joblib", help="where to save the model")
-    parser.add_argument("--cv", action="store_true", help="report 5-fold CV RMSLE before the final fit")
+    parser.add_argument("--no-cv", dest="cv", action="store_false", help="skip the 5-fold cross-validation")
     args = parser.parse_args()
 
     config = load_config(args.config)
